@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0c10">
+<title>zero logs remoto</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0c10; --bg2:#101318; --line:#1c2027; --txt:#e6edf3;
+  --dim:#79818d; --acc:#00e5ff; --ok:#3fb950; --bad:#f85149;
+}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:76px;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:20;background:rgba(10,12,16,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 16px 12px}
+.brand{display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:19px;font-weight:700;letter-spacing:4px;color:var(--txt)}
+.logo i{font-style:normal;color:var(--acc)}
+.conn{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--dim)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bad);transition:.2s}
+.dot.on{background:var(--ok);box-shadow:0 0 7px var(--ok)}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;overflow-x:auto;background:rgba(10,12,16,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:1 0 auto;min-width:74px;background:none;border:none;color:var(--dim);font-size:11px;letter-spacing:.5px;padding:13px 8px 15px;cursor:pointer;position:relative;white-space:nowrap;font-weight:500}
+nav button:after{content:"";position:absolute;left:50%;right:50%;bottom:0;height:2px;background:var(--acc);transition:.2s}
+nav button.on{color:var(--acc)}
+nav button.on:after{left:14px;right:14px}
+main{padding:16px 14px 8px}
+.pane{display:none;animation:f .18s ease}
+.pane.on{display:block}
+@keyframes f{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin-bottom:12px}
+.card h2{font-size:10px;letter-spacing:2.4px;color:var(--dim);text-transform:uppercase;padding:13px 0 6px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);min-height:52px}
+.card h2 + .row{border-top:none}
+.row .lbl{font-size:14px;color:var(--txt)}
+.row .sub{font-size:11px;color:var(--dim);margin-top:2px;line-height:1.35}
+.sw{position:relative;width:44px;height:25px;flex:0 0 auto}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw span{position:absolute;cursor:pointer;inset:0;background:#262b33;border-radius:999px;transition:.2s}
+.sw span:before{content:"";position:absolute;height:19px;width:19px;left:3px;top:3px;background:#6b7280;border-radius:50%;transition:.2s}
+.sw input:checked + span{background:rgba(0,229,255,.28)}
+.sw input:checked + span:before{transform:translateX(19px);background:var(--acc)}
+.slider{width:128px;accent-color:var(--acc);vertical-align:middle}
+.val{font-size:11px;color:var(--acc);min-width:32px;text-align:right;display:inline-block;margin-left:6px}
+.seg{display:flex;gap:5px}
+.seg button{background:#171b21;border:1px solid var(--line);color:var(--dim);padding:7px 12px;border-radius:7px;font-size:12px;cursor:pointer}
+.seg button.on{background:var(--acc);border-color:var(--acc);color:#04121a;font-weight:700}
+select{background:var(--bg);border:1px solid var(--line);color:var(--txt);padding:11px 10px;border-radius:8px;font-size:13px;width:100%}
+.btns{display:flex;gap:8px;flex-wrap:wrap;padding:12px 0 14px}
+.btn{flex:1;min-width:88px;text-align:center;padding:12px 8px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.6px}
+.b-go{background:var(--acc);color:#04121a}
+.b-stop{background:#2a1113;color:#ff8f8a;border:1px solid #45181c}
+.b-pick{background:#171b21;color:var(--txt);border:1px solid var(--line)}
+.b-warn{background:#2b2007;color:#e3b341;border:1px solid #4a3708}
+.stat{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;padding:11px 0;border-top:1px solid var(--line);color:var(--dim)}
+.card h2 + .stat{border-top:none}
+.stat b{color:var(--txt);font-weight:600;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.pill{font-size:10px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim);letter-spacing:.6px;flex:0 0 auto}
+.pill.ok{color:var(--ok);border-color:rgba(63,185,80,.4);background:rgba(63,185,80,.08)}
+.pill.no{color:var(--bad);border-color:rgba(248,81,73,.35);background:rgba(248,81,73,.07)}
+.hint{font-size:11px;color:var(--dim);line-height:1.55;padding:2px 0 14px}
+#toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);background:#171b21;border:1px solid var(--line);color:var(--txt);padding:10px 18px;border-radius:999px;font-size:12px;opacity:0;transition:.25s;pointer-events:none;z-index:99;max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast.show{opacity:1}
+.big{font-size:34px;font-weight:700;letter-spacing:-1px;color:var(--acc);line-height:1}
+.bigwrap{display:flex;align-items:baseline;gap:7px;padding:16px 0 6px}
+.bigwrap span{font-size:11px;color:var(--dim);letter-spacing:1.4px;text-transform:uppercase}
+#gate{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px}
+#gate.hide{display:none}
+#gate .logo{font-size:24px}
+#gate input{background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:14px 12px;border-radius:9px;font-size:14px;width:100%;max-width:320px;text-align:center;letter-spacing:1px}
+#gate .hint{text-align:center;max-width:320px}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="logo">zero<i>logs</i></div>
+  <div class="hint">digite o id do aparelho (aparece no painel, aba <b>remoto</b>)</div>
+  <input id="gateId" placeholder="id do aparelho" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <button class="btn b-go" style="max-width:320px;width:100%" onclick="gateGo()">CONECTAR</button>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="logo">zero<i>logs</i></div>
+    <div class="conn"><span class="dot" id="dot"></span><span id="connTxt">conectando...</span></div>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button data-tab="status" class="on">status</button>
+  <button data-tab="jogo">jogo</button>
+  <button data-tab="tela">tela</button>
+  <button data-tab="esp">esp</button>
+  <button data-tab="freeze">freeze</button>
+  <button data-tab="radar">radar</button>
+  <button data-tab="rede">rede</button>
+  <button data-tab="perm">permiss&otilde;es</button>
+</nav>
+
+<main>
+
+<!-- STATUS -->
+<section class="pane on" id="pane-status">
+  <div class="card">
+    <h2>estado</h2>
+    <div class="stat"><span>jogo selecionado</span><b id="sTarget">-</b></div>
+    <div class="stat"><span>overlay (A2)</span><b id="sOv">-</b></div>
+    <div class="stat"><span>firewall</span><b id="sFw">-</b></div>
+    <div class="stat"><span>esp master</span><b id="sEsp">-</b></div>
+    <div class="stat"><span>fps da overlay</span><b id="sFps">-</b></div>
+    <div class="stat"><span>broker</span><b id="sBroker">-</b></div>
+  </div>
+  <div class="card">
+    <h2>atalhos</h2>
+    <div class="btns">
+      <button class="btn b-go" onclick="api('/api/start','iniciado')">INICIAR</button>
+      <button class="btn b-stop" onclick="api('/api/stop','parado')">PARAR</button>
+      <button class="btn b-pick" onclick="api('/api/pick','escolhendo')">ESCOLHER</button>
+      <button class="btn b-warn" onclick="fwToggle()">FIREWALL</button>
+    </div>
+  </div>
+</section>
+
+<!-- JOGO -->
+<section class="pane" id="pane-jogo">
+  <div class="card">
+    <h2>jogo / motor</h2>
+    <div style="padding:12px 0 14px">
+      <select id="apps"><option value="">carregando apps...</option></select>
+    </div>
+    <div class="btns">
+      <button class="btn b-go" onclick="api('/api/start','iniciado')">INICIAR</button>
+      <button class="btn b-stop" onclick="api('/api/stop','parado')">PARAR</button>
+      <button class="btn b-pick" onclick="api('/api/pick','escolhendo')">ESCOLHER</button>
+      <button class="btn b-warn" onclick="fwToggle()">FIREWALL</button>
+    </div>
+  </div>
+</section>
+
+<!-- TELA -->
+<section class="pane" id="pane-tela">
+  <div class="card">
+    <h2>elementos na tela</h2>
+    <div class="row">
+      <div><div class="lbl">Mira (crosshair)</div><div class="sub">ponto/mira central sobre o jogo</div></div>
+      <label class="sw"><input type="checkbox" data-op="flag" data-key="crosshair_enabled"><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="lbl">Bot&atilde;o freeze</div><div class="sub">bot&atilde;o flutuante de congela</div></div>
+      <label class="sw"><input type="checkbox" data-op="flag" data-key="freeze"><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="lbl">Overlay ESP</div><div class="sub">caixas/vida/nome dos inimigos</div></div>
+      <label class="sw"><input type="checkbox" data-op="flag" data-key="esp"><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="lbl">Radar</div><div class="sub">mini mapa flutuante</div></div>
+      <label class="sw"><input type="checkbox" data-op="flag" data-key="radar"><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="lbl">Contagem de inimigos</div><div class="sub">n&uacute;mero na tela</div></div>
+      <label class="sw"><input type="checkbox" data-op="flag" data-key="enemy_count"><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="lbl">Alpha do menu</div><div class="sub">transpar&ecirc;ncia do menu</div></div>
+      <div><input class="slider" type="range" min="72" max="100" data-op="int" data-key="menu_alpha"><span class="val"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>fps da overlay</h2>
+    <div class="bigwrap"><div class="big" id="fpsBig">0</div><span>fps</span></div>
+    <div class="row" style="border-top:none">
+      <div><div class="lbl">Limite de FPS</div><div class="sub">0 = sem limite &middot; m&iacute;n 0 &middot; m&aacute;x 999</div></div>
+      <div><input class="slider" type="range" min="0" max="999" step="1" data-op="int" data-key="overlay_fps" data-special="fps"><span class="val"></span></div>
+    </div>
+    <div class="row">
+      <div class="lbl">atalhos</div>
+      <div class="seg" id="fpsSeg">
+        <button data-v="0">livre</button><button data-v="30">30</button><button data-v="60">60</button><button data-v="90">90</button><button data-v="120">120</button>
+      </div>
+    </div>
+    <div class="hint">quanto maior o limite, mais fluido e mais quente o aparelho. 0 libera tudo.</div>
+  </div>
+</section>
+
+<!-- ESP -->
+<section class="pane" id="pane-esp">
+  <div class="card">
+    <h2>esp</h2>
+    <div class="row"><div><div class="lbl">ESP principal</div><div class="sub">liga/desliga o overlay de esp</div></div><label class="sw"><input type="checkbox" data-op="flag" data-key="esp"><span></span></label></div>
+    <div class="row"><div class="lbl">Box</div><label class="sw"><input type="checkbox" data-op="esp" data-key="box"><span></span></label></div>
+    <div class="row"><div class="lbl">Vida</div><label class="sw"><input type="checkbox" data-op="esp" data-key="health"><span></span></label></div>
+    <div class="row"><div class="lbl">Nome</div><label class="sw"><input type="checkbox" data-op="esp" data-key="name"><span></span></label></div>
+    <div class="row"><div class="lbl">Dist&acirc;ncia</div><label class="sw"><input type="checkbox" data-op="esp" data-key="distance"><span></span></label></div>
+    <div class="row"><div class="lbl">Linhas</div><label class="sw"><input type="checkbox" data-op="esp" data-key="lines"><span></span></label></div>
+    <div class="row"><div class="lbl">Suavizar</div><label class="sw"><input type="checkbox" data-op="flag" data-key="esp_smooth"><span></span></label></div>
+    <div class="row"><div class="lbl">Contagem de inimigos</div><label class="sw"><input type="checkbox" data-op="flag" data-key="enemy_count"><span></span></label></div>
+    <div class="row"><div class="lbl">Mira (crosshair)</div><label class="sw"><input type="checkbox" data-op="flag" data-key="crosshair_enabled"><span></span></label></div>
+    <div class="row"><div class="lbl">Estilo da box</div>
+      <div class="seg" id="styleSeg">
+        <button data-v="0">0</button><button data-v="1">1</button><button data-v="2">2</button>
+      </div>
+    </div>
+    <div class="row"><div class="lbl">Alpha box</div><div><input class="slider" type="range" min="20" max="200" data-op="int" data-key="esp_box_alpha"><span class="val"></span></div></div>
+    <div class="row"><div class="lbl">Alpha linha</div><div><input class="slider" type="range" min="20" max="200" data-op="int" data-key="esp_line_alpha"><span class="val"></span></div></div>
+    <div class="row"><div class="lbl">Alpha player</div><div><input class="slider" type="range" min="20" max="200" data-op="int" data-key="esp_player_alpha"><span class="val"></span></div></div>
+    <div class="row"><div class="lbl">Alpha moco</div><div><input class="slider" type="range" min="20" max="200" data-op="int" data-key="esp_moco_alpha"><span class="val"></span></div></div>
+  </div>
+</section>
+
+<!-- FREEZE -->
+<section class="pane" id="pane-freeze">
+  <div class="card">
+    <h2>freeze / lag</h2>
+    <div class="row"><div><div class="lbl">Freeze</div><div class="sub">congela o alvo</div></div><label class="sw"><input type="checkbox" data-op="flag" data-key="freeze"><span></span></label></div>
+    <div class="row"><div><div class="lbl">Auto freeze</div><div class="sub">congela autom&aacute;tico</div></div><label class="sw"><input type="checkbox" data-op="flag" data-key="auto_freeze"><span></span></label></div>
+    <div class="row"><div class="lbl">Aim lag</div><label class="sw"><input type="checkbox" data-op="flag" data-key="aim_lag"><span></span></label></div>
+    <div class="row"><div class="lbl">Scope freeze</div><label class="sw"><input type="checkbox" data-op="flag" data-key="scope_freeze"><span></span></label></div>
+  </div>
+</section>
+
+<!-- RADAR -->
+<section class="pane" id="pane-radar">
+  <div class="card">
+    <h2>radar</h2>
+    <div class="row"><div><div class="lbl">Radar</div><div class="sub">mini mapa flutuante</div></div><label class="sw"><input type="checkbox" data-op="flag" data-key="radar"><span></span></label></div>
+    <div class="row"><div class="lbl">Alcance</div><div><input class="slider" type="range" min="30" max="100" data-op="int" data-key="radar_range"><span class="val"></span></div></div>
+    <div class="row"><div class="lbl">Tamanho bolha</div><div><input class="slider" type="range" min="42" max="74" data-op="int" data-key="bubble_size"><span class="val"></span></div></div>
+  </div>
+</section>
+
+<!-- REDE -->
+<section class="pane" id="pane-rede">
+  <div class="card">
+    <h2>rede</h2>
+    <div class="row"><div class="lbl">Net magnet</div><label class="sw"><input type="checkbox" data-op="flag" data-key="net_magnet"><span></span></label></div>
+    <div class="row"><div class="lbl">Net ghost</div><label class="sw"><input type="checkbox" data-op="flag" data-key="net_ghost"><span></span></label></div>
+    <div class="row"><div class="lbl">Net under</div><label class="sw"><input type="checkbox" data-op="flag" data-key="net_under"><span></span></label></div>
+    <div class="row"><div class="lbl">Net wall</div><label class="sw"><input type="checkbox" data-op="flag" data-key="net_wall"><span></span></label></div>
+    <div class="row"><div class="lbl">Net teleport</div><label class="sw"><input type="checkbox" data-op="flag" data-key="net_teleport"><span></span></label></div>
+    <div class="row"><div class="lbl">TP speed</div><div><input class="slider" type="range" min="1" max="20" data-op="int" data-key="net_tp_speed"><span class="val"></span></div></div>
+  </div>
+</section>
+
+<!-- PERMISSOES -->
+<section class="pane" id="pane-perm">
+  <div class="card">
+    <h2>permiss&otilde;es</h2>
+    <button class="pbtn" style="width:100%;text-align:left;padding:13px 14px;border-radius:9px;border:1px solid var(--line);background:#171b21;color:var(--txt);font-size:13px;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600" onclick="perm('overlay')">
+      <span>Sobreposi&ccedil;&atilde;o<small style="font-weight:400;font-size:11px;color:var(--dim);display:block;margin-top:3px">deixa a overlay aparecer sobre o jogo</small></span>
+      <span class="pill" id="pOvl">-</span>
+    </button>
+    <button style="width:100%;text-align:left;padding:13px 14px;border-radius:9px;border:1px solid var(--line);background:#171b21;color:var(--txt);font-size:13px;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600" onclick="perm('vpn')">
+      <span>VPN<small style="font-weight:400;font-size:11px;color:var(--dim);display:block;margin-top:3px">consentimento da VPN do app</small></span>
+      <span class="pill" id="pVpn">-</span>
+    </button>
+    <button style="width:100%;text-align:left;padding:13px 14px;border-radius:9px;border:1px solid var(--line);background:#171b21;color:var(--txt);font-size:13px;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600" onclick="perm('all')">
+      <span>Tudo<small style="font-weight:400;font-size:11px;color:var(--dim);display:block;margin-top:3px">ativa as duas de uma vez</small></span>
+      <span class="pill" id="pAll">-</span>
+    </button>
+    <div class="btns">
+      <button class="btn b-go" onclick="api('/api/start','iniciado')">INICIAR</button>
+      <button class="btn b-stop" onclick="api('/api/stop','parado')">PARAR</button>
+    </div>
+    <div class="hint">o sistema abre a tela de permiss&atilde;o no celular. volte aqui depois de conceder &mdash; o estado atualiza sozinho.</div>
+  </div>
+</section>
+
+</main>
+
+<div id="toast"></div>
+
+<script src="https://unpkg.com/mqtt@4/dist/mqtt.min.js"></script>
+<script>
+var BROKER="wss://broker.hivemq.com:8884/mqtt";
+var T_CMD,T_STATE,T_APPS;
+var client=null;
+var sid="";
+var cur={};
+var busy={};
+var wantApps=false;
+
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.className="show";clearTimeout(t._h);t._h=setTimeout(function(){t.className="";},1500);}
+function conn(on,txt){document.getElementById("dot").className=on?"dot on":"dot";document.getElementById("connTxt").textContent=txt;}
+
+function gateGo(){
+  var v=(document.getElementById("gateId").value||"").trim();
+  if(!v){toast("digita o id");return;}
+  try{localStorage.setItem("zlsid",v);}catch(e){}
+  start(v);
+}
+
+function boot(){
+  var h=(location.hash||"").replace(/^#/,"").trim();
+  var s="";
+  try{s=localStorage.getItem("zlsid")||"";}catch(e){}
+  if(h)s=h;
+  if(s){document.getElementById("gate").className="hide";start(s);}
+}
+
+function start(s){
+  sid=s;
+  T_CMD="rxz/"+sid+"/cmd";
+  T_STATE="rxz/"+sid+"/state";
+  T_APPS="rxz/"+sid+"/apps";
+  conn(false,"conectando...");
+  if(client){try{client.end(true);}catch(e){}}
+  client=mqtt.connect(BROKER,{connectTimeout:8000,reconnectPeriod:3000,keepalive:25});
+  client.on("connect",function(){
+    conn(true,"conectado");
+    client.subscribe(T_STATE,{qos:0},function(){});
+    client.subscribe(T_APPS,{qos:0},function(){});
+    send("/api/apps");
+  });
+  client.on("reconnect",function(){conn(false,"reconectando...");});
+  client.on("close",function(){conn(false,"desconectado");});
+  client.on("error",function(){conn(false,"erro de broker");});
+  client.on("message",function(t,p){
+    var txt="";
+    try{txt=p.toString("utf8");}catch(e){try{txt=String(p);}catch(e2){return;}}
+    if(t===T_STATE){
+      var j=null;try{j=JSON.parse(txt);}catch(e){}
+      if(j)render(j);
+    }else if(t===T_APPS){
+      var a=null;try{a=JSON.parse(txt);}catch(e){}
+      if(a)fillApps(a);
+    }
+  });
+}
+
+function send(path){
+  if(!client||!client.connected){toast("sem conexao");return false;}
+  try{client.publish(T_CMD,String(path),{qos:0});return true;}catch(e){toast("falha ao enviar");return false;}
+}
+
+function api(u,msg,cb){
+  if(!send(u)){if(cb)cb(null);return;}
+  if(msg)toast(msg);
+  if(cb)setTimeout(cb,350);
+}
+
+function setKey(op,key,val,silent){
+  var id=op+":"+key;
+  if(busy[id])return;
+  busy[id]=1;
+  api("/api/set?op="+op+"&key="+key+"&val="+val,null,function(){
+    busy[id]=0;
+    if(!silent)toast(key+" = "+val);
+  });
+}
+
+function perm(v){api("/api/perm?val="+v,"pedindo permissao: "+v);}
+function fwToggle(){var nv=(cur.fw?0:1);api("/api/fw?val="+nv,"firewall = "+nv);}
+
+function render(s){
+  cur=s;
+  conn(true,"conectado");
+  document.getElementById("sTarget").textContent=s.target||"(nenhum)";
+  document.getElementById("sOv").textContent=s.overlay?"ativo":"parado";
+  document.getElementById("sFw").textContent=s.fw?"ligado":"desligado";
+  document.getElementById("sEsp").textContent=s.esp_master?"ligado":"desligado";
+  document.getElementById("sFps").textContent=(s.fps?String(s.fps)+" fps":"sem limite");
+  document.getElementById("sBroker").textContent=sid;
+
+  var st=document.getElementById("styleSeg");
+  st.querySelectorAll("button").forEach(function(b){
+    b.className=(parseInt(b.dataset.v,10)===s.style)?"on":"";
+  });
+  var fs=document.getElementById("fpsSeg");
+  fs.querySelectorAll("button").forEach(function(b){
+    b.className=(parseInt(b.dataset.v,10)===(s.fps||0))?"on":"";
+  });
+  document.getElementById("fpsBig").textContent=(s.fps||0);
+
+  setPill("pOvl",s.perm_overlay);
+  setPill("pVpn",s.perm_vpn);
+  setPill("pAll",(s.perm_overlay&&s.perm_vpn));
+
+  document.querySelectorAll('input[type=checkbox]').forEach(function(c){
+    var op=c.dataset.op,key=c.dataset.key,v=0;
+    if(op==="esp")v=(s.esp&&s.esp[key])?1:0;
+    else if(op==="flag")v=(s.flags&&s.flags[key])?1:0;
+    if(c.checked!==(!!v))c.checked=!!v;
+  });
+
+  document.querySelectorAll('input[type=range]').forEach(function(r){
+    var key=r.dataset.key,v;
+    if(r.dataset.special)v=s[r.dataset.special];
+    else v=(s.ints||{})[key];
+    if(v===undefined||v===null)return;
+    if(document.activeElement!==r)r.value=v;
+    var lab=r.parentNode.querySelector(".val");
+    if(lab)lab.textContent=v;
+  });
+
+  var sel=document.getElementById("apps");
+  if(s.target&&sel.options.length>1&&!sel._touched){
+    for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===s.target){sel.selectedIndex=i;break;}}
+  }
+}
+
+function fillApps(list){
+  var sel=document.getElementById("apps");
+  if(!list||!list.length){sel.innerHTML='<option value="">nenhum app</option>';return;}
+  sel.innerHTML='<option value="">selecione o jogo...</option>';
+  list.forEach(function(a){
+    var o=document.createElement("option");
+    o.value=a.p;o.textContent=a.n;
+    sel.appendChild(o);
+  });
+  if(cur.target){for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===cur.target){sel.selectedIndex=i;break;}}}
+}
+
+function setPill(id,val){
+  var el=document.getElementById(id);
+  if(!el)return;
+  if(val===true||val===1){el.className="pill ok";el.textContent="concedido";}
+  else if(val===false||val===0){el.className="pill no";el.textContent="falta";}
+  else {el.className="pill";el.textContent="-";}
+}
+
+function bind(){
+  document.querySelectorAll('input[type=checkbox]').forEach(function(c){
+    c.addEventListener("change",function(){setKey(c.dataset.op,c.dataset.key,c.checked?1:0);});
+  });
+  document.querySelectorAll('input[type=range]').forEach(function(r){
+    r.addEventListener("change",function(){
+      setKey("int",r.dataset.key,parseInt(r.value,10));
+      var lab=r.parentNode.querySelector(".val");if(lab)lab.textContent=r.value;
+    });
+    r.addEventListener("input",function(){
+      var lab=r.parentNode.querySelector(".val");if(lab)lab.textContent=r.value;
+    });
+  });
+  document.getElementById("styleSeg").querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click",function(){setKey("style","",parseInt(b.dataset.v,10));});
+  });
+  document.getElementById("fpsSeg").querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click",function(){setKey("int","overlay_fps",parseInt(b.dataset.v,10));});
+  });
+  document.getElementById("tabs").querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click",function(){
+      document.getElementById("tabs").querySelectorAll("button").forEach(function(x){x.className="";});
+      b.className="on";
+      document.querySelectorAll(".pane").forEach(function(p){p.className="pane";});
+      document.getElementById("pane-"+b.dataset.tab).className="pane on";
+      window.scrollTo(0,0);
+      if(b.dataset.tab==="jogo")send("/api/apps");
+    });
+  });
+  var sel=document.getElementById("apps");
+  sel.addEventListener("change",function(){
+    sel._touched=1;
+    if(!sel.value)return;
+    api("/api/pkg?val="+encodeURIComponent(sel.value),"jogo = "+sel.value);
+  });
+}
+
+bind();
+boot();
+setInterval(function(){if(client&&client.connected&&sid)send("/api/apps");},8000);
+</script>
+</body>
+</html>
