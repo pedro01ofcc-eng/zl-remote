@@ -111,10 +111,7 @@ select{background:var(--bg);border:1px solid var(--line);color:var(--txt);paddin
     <div class="stat"><span>sobreposi&ccedil;&atilde;o</span><b><span class="pill" id="jOvl">-</span></b></div>
     <div class="stat"><span>vpn</span><b><span class="pill" id="jVpn">-</span></b></div>
     <div class="stat"><span>motor</span><b id="sMotor">-</b></div>
-    <div class="btns">
-      <button class="btn b-go inj" onclick="inject()">INJECT</button>
-    </div>
-    <div class="hint">um toque faz tudo: pede sobreposi&ccedil;&atilde;o &rarr; pede a VPN &rarr; j&aacute; liga o motor. o free fire j&aacute; vem selecionado.</div>
+    <div class="hint">permiss&otilde;es (overlay + VPN) s&atilde;o pedidas pelo app quando ele abre e o motor liga sozinho quando voc&ecirc; aprova as duas &mdash; daqui voc&ecirc; s&oacute; controla as op&ccedil;&otilde;es.</div>
   </div>
   <div class="card">
     <h2>desligar</h2>
@@ -147,7 +144,6 @@ select{background:var(--bg);border:1px solid var(--line);color:var(--txt);paddin
     </div>
     <div class="hint" style="padding-top:10px">o free fire j&aacute; vem selecionado &mdash; s&oacute; troca se quiser outro jogo.</div>
     <div class="btns">
-      <button class="btn b-go inj" onclick="inject()">INJECT</button>
       <button class="btn b-pick" onclick="api('/api/pick','escolhendo')">TROCAR JOGO</button>
     </div>
   </div>
@@ -263,22 +259,10 @@ select{background:var(--bg);border:1px solid var(--line);color:var(--txt);paddin
 <section class="pane" id="pane-perm">
   <div class="card">
     <h2>permiss&otilde;es</h2>
-    <button class="pbtn" style="width:100%;text-align:left;padding:13px 14px;border-radius:9px;border:1px solid var(--line);background:#171b21;color:var(--txt);font-size:13px;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600" onclick="perm('overlay')">
-      <span>Sobreposi&ccedil;&atilde;o<small style="font-weight:400;font-size:11px;color:var(--dim);display:block;margin-top:3px">deixa a overlay aparecer sobre o jogo</small></span>
-      <span class="pill" id="pOvl">-</span>
-    </button>
-    <button style="width:100%;text-align:left;padding:13px 14px;border-radius:9px;border:1px solid var(--line);background:#171b21;color:var(--txt);font-size:13px;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600" onclick="perm('vpn')">
-      <span>VPN<small style="font-weight:400;font-size:11px;color:var(--dim);display:block;margin-top:3px">consentimento da VPN do app</small></span>
-      <span class="pill" id="pVpn">-</span>
-    </button>
-    <button style="width:100%;text-align:left;padding:13px 14px;border-radius:9px;border:1px solid var(--line);background:#171b21;color:var(--txt);font-size:13px;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600" onclick="perm('all')">
-      <span>Tudo<small style="font-weight:400;font-size:11px;color:var(--dim);display:block;margin-top:3px">ativa as duas de uma vez</small></span>
-      <span class="pill" id="pAll">-</span>
-    </button>
-    <div class="btns">
-      <button class="btn b-go inj" onclick="inject()">INJECT</button>
-    </div>
-    <div class="hint">o <b>INJECT</b> da aba status j&aacute; pede as duas permiss&otilde;es em sequ&ecirc;ncia e liga o motor sozinho &mdash; esses bot&otilde;es s&atilde;o s&oacute; pra pedir permiss&atilde;o na marra.</div>
+    <div class="stat"><span>sobreposi&ccedil;&atilde;o</span><b><span class="pill" id="pOvl">-</span></b></div>
+    <div class="stat"><span>vpn</span><b><span class="pill" id="pVpn">-</span></b></div>
+    <div class="stat"><span>tudo liberado</span><b><span class="pill" id="pAll">-</span></b></div>
+    <div class="hint">as permiss&otilde;es s&atilde;o pedidas pelo app quando ele abre no celular &mdash; overlay primeiro, depois VPN. aqui &eacute; s&oacute; consulta: se estiver vermelho, abra o app e aprove as duas.</div>
   </div>
 </section>
 
@@ -365,10 +349,8 @@ function setKey(op,key,val,silent){
   });
 }
 
-function perm(v){api("/api/perm?val="+v,"pedindo permissao: "+v);}
 function fwToggle(){var nv=(cur.fw?0:1);api("/api/fw?val="+nv,"firewall = "+nv);}
 
-function inject(){api("/api/inject","injetando...");}
 function offAll(){api("/api/off","desligando vpn + overlay + motor...");}
 function srvTgl(){
   var on=(cur.server!==false);
