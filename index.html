@@ -54,6 +54,7 @@ select{background:var(--bg);border:1px solid var(--line);color:var(--txt);paddin
 .b-stop{background:#2a1113;color:#ff8f8a;border:1px solid #45181c}
 .b-pick{background:#171b21;color:var(--txt);border:1px solid var(--line)}
 .b-warn{background:#2b2007;color:#e3b341;border:1px solid #4a3708}
+.inj{flex:1 0 100%;min-height:58px;font-size:17px;letter-spacing:3px;box-shadow:0 0 18px rgba(0,229,255,.22)}
 .stat{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;padding:11px 0;border-top:1px solid var(--line);color:var(--dim)}
 .card h2 + .stat{border-top:none}
 .stat b{color:var(--txt);font-weight:600;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
@@ -105,20 +106,33 @@ select{background:var(--bg);border:1px solid var(--line);color:var(--txt);paddin
 <!-- STATUS -->
 <section class="pane on" id="pane-status">
   <div class="card">
+    <h2>inje&ccedil;&atilde;o</h2>
+    <div class="stat"><span>jogo</span><b id="sTarget">-</b></div>
+    <div class="stat"><span>sobreposi&ccedil;&atilde;o</span><b><span class="pill" id="jOvl">-</span></b></div>
+    <div class="stat"><span>vpn</span><b><span class="pill" id="jVpn">-</span></b></div>
+    <div class="stat"><span>motor</span><b id="sMotor">-</b></div>
+    <div class="btns">
+      <button class="btn b-go inj" onclick="inject()">INJECT</button>
+    </div>
+    <div class="hint">um toque faz tudo: pede sobreposi&ccedil;&atilde;o &rarr; pede a VPN &rarr; j&aacute; liga o motor. o free fire j&aacute; vem selecionado.</div>
+  </div>
+  <div class="card">
+    <h2>desligar</h2>
+    <div class="btns">
+      <button class="btn b-stop" onclick="offAll()">DESLIGAR TUDO</button>
+      <button class="btn b-warn" id="srvBtn" onclick="srvTgl()">DESLIGAR SERVIDOR</button>
+    </div>
+    <div class="hint"><b>desligar tudo</b> para a VPN, a overlay e o motor &mdash; fica s&oacute; o servidor (o site continua no ar).<br><b>desligar servidor</b> fecha o site do celular &mdash; daqui d&aacute; pra religar direto (o bot&atilde;o vira <b>LIGAR SERVIDOR</b>).</div>
+  </div>
+  <div class="card">
     <h2>estado</h2>
-    <div class="stat"><span>jogo selecionado</span><b id="sTarget">-</b></div>
-    <div class="stat"><span>overlay (A2)</span><b id="sOv">-</b></div>
+    <div class="stat"><span>servidor do site</span><b id="sSrv">-</b></div>
     <div class="stat"><span>firewall</span><b id="sFw">-</b></div>
     <div class="stat"><span>esp master</span><b id="sEsp">-</b></div>
     <div class="stat"><span>fps da overlay</span><b id="sFps">-</b></div>
     <div class="stat"><span>broker</span><b id="sBroker">-</b></div>
-  </div>
-  <div class="card">
-    <h2>atalhos</h2>
     <div class="btns">
-      <button class="btn b-go" onclick="api('/api/start','iniciado')">INICIAR</button>
-      <button class="btn b-stop" onclick="api('/api/stop','parado')">PARAR</button>
-      <button class="btn b-pick" onclick="api('/api/pick','escolhendo')">ESCOLHER</button>
+      <button class="btn b-pick" onclick="api('/api/pick','escolhendo')">TROCAR JOGO</button>
       <button class="btn b-warn" onclick="fwToggle()">FIREWALL</button>
     </div>
   </div>
@@ -127,15 +141,14 @@ select{background:var(--bg);border:1px solid var(--line);color:var(--txt);paddin
 <!-- JOGO -->
 <section class="pane" id="pane-jogo">
   <div class="card">
-    <h2>jogo / motor</h2>
-    <div style="padding:12px 0 14px">
+    <h2>jogo</h2>
+    <div style="padding:12px 0 2px">
       <select id="apps"><option value="">carregando apps...</option></select>
     </div>
+    <div class="hint" style="padding-top:10px">o free fire j&aacute; vem selecionado &mdash; s&oacute; troca se quiser outro jogo.</div>
     <div class="btns">
-      <button class="btn b-go" onclick="api('/api/start','iniciado')">INICIAR</button>
-      <button class="btn b-stop" onclick="api('/api/stop','parado')">PARAR</button>
-      <button class="btn b-pick" onclick="api('/api/pick','escolhendo')">ESCOLHER</button>
-      <button class="btn b-warn" onclick="fwToggle()">FIREWALL</button>
+      <button class="btn b-go inj" onclick="inject()">INJECT</button>
+      <button class="btn b-pick" onclick="api('/api/pick','escolhendo')">TROCAR JOGO</button>
     </div>
   </div>
 </section>
@@ -263,10 +276,9 @@ select{background:var(--bg);border:1px solid var(--line);color:var(--txt);paddin
       <span class="pill" id="pAll">-</span>
     </button>
     <div class="btns">
-      <button class="btn b-go" onclick="api('/api/start','iniciado')">INICIAR</button>
-      <button class="btn b-stop" onclick="api('/api/stop','parado')">PARAR</button>
+      <button class="btn b-go inj" onclick="inject()">INJECT</button>
     </div>
-    <div class="hint">o sistema abre a tela de permiss&atilde;o no celular. volte aqui depois de conceder &mdash; o estado atualiza sozinho.</div>
+    <div class="hint">o <b>INJECT</b> da aba status j&aacute; pede as duas permiss&otilde;es em sequ&ecirc;ncia e liga o motor sozinho &mdash; esses bot&otilde;es s&atilde;o s&oacute; pra pedir permiss&atilde;o na marra.</div>
   </div>
 </section>
 
@@ -356,15 +368,26 @@ function setKey(op,key,val,silent){
 function perm(v){api("/api/perm?val="+v,"pedindo permissao: "+v);}
 function fwToggle(){var nv=(cur.fw?0:1);api("/api/fw?val="+nv,"firewall = "+nv);}
 
+function inject(){api("/api/inject","injetando...");}
+function offAll(){api("/api/off","desligando vpn + overlay + motor...");}
+function srvTgl(){
+  var on=(cur.server!==false);
+  api("/api/srv?val="+(on?0:1),on?"desligando servidor...":"ligando servidor...");
+}
+
 function render(s){
   cur=s;
   conn(true,"conectado");
   document.getElementById("sTarget").textContent=s.target||"(nenhum)";
-  document.getElementById("sOv").textContent=s.overlay?"ativo":"parado";
+  document.getElementById("sMotor").textContent=(s.engine||s.overlay)?"ligado":"parado";
   document.getElementById("sFw").textContent=s.fw?"ligado":"desligado";
   document.getElementById("sEsp").textContent=s.esp_master?"ligado":"desligado";
   document.getElementById("sFps").textContent=(s.fps?String(s.fps)+" fps":"sem limite");
   document.getElementById("sBroker").textContent=sid;
+  document.getElementById("sSrv").textContent=(s.server===false)?"parado":"no ar";
+  document.getElementById("srvBtn").textContent=(s.server===false)?"LIGAR SERVIDOR":"DESLIGAR SERVIDOR";
+  setPill("jOvl",s.perm_overlay);
+  setPill("jVpn",s.perm_vpn);
 
   var st=document.getElementById("styleSeg");
   st.querySelectorAll("button").forEach(function(b){
